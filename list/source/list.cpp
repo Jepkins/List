@@ -10,11 +10,6 @@ static const size_t list_max_cap = 1e6;
 
 mylist::mylist()
 {
-    if (inited)
-    {
-        fprintf(stderr, "mylist: trying to construct consistent");
-        return -1;
-    }
     cap = list_default_cap;
     buff = (list_elm_t*) calloc(cap + 1, sizeof(*buff));
     next = (size_t*) calloc(cap + 1, sizeof(*next));
@@ -56,6 +51,10 @@ size_t mylist::getsize()
 size_t mylist::getcap()
 {
     return cap;
+}
+size_t mylist::getfree()
+{
+    return ifree;
 }
 size_t mylist::getnext(size_t ind)
 {
@@ -175,8 +174,4 @@ list_elm_t mylist::at(size_t ind)
 // FUCK: errors
     return buff[ind];
 }
-// TODO
-// void mylist::dump(const char* html_filename, const char* png_filename)
-// {
-//
-// }
+

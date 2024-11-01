@@ -2,3 +2,6 @@
 *.exe
 *.d
 *.o
+*.dot
+*.html
+*.png
