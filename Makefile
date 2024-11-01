@@ -28,15 +28,12 @@ all: list
 list: $(LIST_EXEC)
 	@echo Successfully remade $<
 
-asm: $(ASM_EXEC)
-	@echo Successfully remade $<
-
 common: $(COMMON_OBJECTS)
 
 $(LIST_EXEC): make_common make_list
 	@echo --making $@--
 	@mkdir -p $(@D)
-	@sleep 0.5
+	@sleep 1
 	@$(CC) $(COMMON_OBJECTS) $(LIST_OBJECTS) -o $@ $(LDFLAGS)
 
 make_common:
