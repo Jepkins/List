@@ -3,14 +3,14 @@
 #include <assert.h>
 #include "list.h"
 
-static const size_t list_default_cap = 16;
+static const size_t list_starting_cap = 16;
 
 static const size_t expansion_multiplier = 2;
 static const size_t list_max_cap = 1e6;
 
 mylist::mylist()
 {
-    cap = list_default_cap;
+    cap = list_starting_cap;
     buff = (list_elm_t*) calloc(cap + 1, sizeof(*buff));
     next = (size_t*) calloc(cap + 1, sizeof(*next));
     prev = (size_t*) calloc(cap + 1, sizeof(*prev));
@@ -18,6 +18,7 @@ mylist::mylist()
     {
         free(buff); free(prev); free(next);
         fprintf(stderr, "mylist: Allocation error!\n");
+        return;
     }
     next[0] = 0;
     prev[0] = 0;
@@ -81,13 +82,13 @@ int mylist::expand()
 
     if (new_cap > list_max_cap)
     {
-        fprintf(stderr, "Too big capacity to reallocate\n");
+        fprintf(stderr, "mylist::expand(): Too big capacity to reallocate\n");
         return 2;
     }
     list_elm_t* new_buff = (list_elm_t*) realloc(buff, (new_cap+1) * sizeof(*buff));
     if (!new_buff)
     {
-        fprintf(stderr, "Reallocation error!\n");
+        fprintf(stderr, "mylist::expand(): Reallocation error!\n");
         return 1;
     }
     else
@@ -96,7 +97,7 @@ int mylist::expand()
     size_t* new_prev = (size_t*) realloc(prev, (new_cap+1) * sizeof(*prev));
     if (!new_prev)
     {
-        fprintf(stderr, "Reallocation error!\n");
+        fprintf(stderr, "mylist::expand(): Reallocation error!\n");
         return 1;
     }
     else
@@ -105,7 +106,7 @@ int mylist::expand()
     size_t* new_next = (size_t*) realloc(next, (new_cap+1) * sizeof(*next));
     if (!new_next)
     {
-        fprintf(stderr, "Reallocation error!\n");
+        fprintf(stderr, "mylist::expand(): Reallocation error!\n");
         return 1;
     }
     else

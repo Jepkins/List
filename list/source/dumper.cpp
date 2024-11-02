@@ -69,6 +69,11 @@ int mylist_dumper::new_dump(mylist* ls)
         fprintf(stderr, "mylist_dumper::new_dump(): ls == nullptr!\n");
         return -1;
     }
+    if (started == false)
+    {
+        fprintf(stderr, "mylist_dumper::new_dump(): duming not started (try calling mylist_dumper::start())\n");
+        return -2;
+    }
 
     new_dot(ls);
     new_htm(ls);
@@ -80,7 +85,11 @@ int mylist_dumper::new_dump(mylist* ls)
 
 void mylist_dumper::end()
 {
-    if (started) fclose(html_fp);
+    if (started)
+    {
+        fprintf(html_fp, "</div>\n</body>");
+        fclose(html_fp);
+    }
     started = false;
 }
 
@@ -97,39 +106,39 @@ int mylist_dumper::new_dot(mylist* ls)
     char png_name[MAX_NAME_LEN+20] = {};
     sprintf(png_name, "%s%4s%lu%4s", png_dir, "/img", dump_num, ".png");
 
-    fprintf(dot_fp, "digraph\n{\nrankdir = LR; bgcolor = \"#aaaaccff\"; ranksep = 0.7;\n");
+    fprintf(dot_fp, "digraph\n{\nrankdir = LR; bgcolor = \"#aaaaccff\"; ranksep = 0.6;\n");
 
     size_t cap = ls->getcap();
     for(size_t i = 0; i <= cap; i++)
     {
-        size_t color = 0x123456ff;
+        size_t color = 0x11441133;
         if (ls->getprev(i) == -1lu)
-            color = 0x111111aa;
+            color = 0x44111133;
         if (i == 0)
-            color = 0xffff66ff;
-        fprintf(dot_fp, "node%lu [shape = record, color = \"#%.8lX\", label =\""
+            color = 0xffff6633;
+        fprintf(dot_fp, "node%lu [shape = record, color = \"#%.8lX\", style=filled; label =\""
                         "{<ind>ind\\n%lu | {<next> next\\n%lu | <val> value\\n%" LIST_ELM_T_FORMAT " | <prev> prev\\n%ld }}\"];\n",
                         i, color, i, ls->getnext(i), ls->at(i), ls->getprev(i));
     }
-    fprintf(dot_fp, "edge [weight = 100; style = \"invis\";]\n");
+    fprintf(dot_fp, "edge [constraint = true; style = \"invis\";]\n");
     for(size_t i = 0; i < cap; i++)
     {
         fprintf(dot_fp, "node%lu -> node%lu;\n", i, i+1);
     }
-    fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#55aa77ff\"; tailport=n; headport=n]\n");
+    fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#55aa77ff\";]\n");
     for(size_t i = 0; i <= cap; i++)
     {
         size_t next = ls->getnext(i);
-        fprintf(dot_fp, "node%lu:<next> -> node%lu;\n", i, next);
+        fprintf(dot_fp, "node%lu:<next>:n -> node%lu:<ind>:n;\n", i, next);
     }
-    fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#aa5577ff\"; tailport=s; headport=s]\n");
+    fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#aa5577ff\";]\n");
     for(size_t i = 0; i <= cap; i++)
     {
         size_t prev = ls->getprev(i);
         if (prev == -1lu)
             continue;
         else
-            fprintf(dot_fp, "node%lu:<prev> -> node%lu;\n", i, prev);
+            fprintf(dot_fp, "node%lu:<prev>:s -> node%lu:<ind>:s;\n", i, prev);
     }
 
     fprintf(dot_fp, "}\n");
@@ -147,30 +156,31 @@ int mylist_dumper::new_htm(mylist* ls)
     fprintf(html_fp, "cap = %lu\n", ls->getcap());
     fprintf(html_fp, "size = %lu\n", ls->getsize());
     fprintf(html_fp, "free = %lu\n", ls->getfree());
-    fprintf(html_fp, "buff = ");
-    for (size_t i = 0; i <= ls->getcap(); i++)
-    {
-        fprintf(html_fp, "%4" LIST_ELM_T_FORMAT " ", ls->at(i));
-    }
-    fprintf(html_fp, "\n");
-    fprintf(html_fp, "next = ");
-    for (size_t i = 0; i <= ls->getcap(); i++)
-    {
-        fprintf(html_fp, "%4lu ", ls->getnext(i));
-    }
-    fprintf(html_fp, "\n");
-    fprintf(html_fp, "prev = ");
-    for (size_t i = 0; i <= ls->getcap(); i++)
-    {
-        fprintf(html_fp, "%4ld ", ls->getprev(i));
-    }
-    fprintf(html_fp, "\n</pre>\n");
+    // LEGACY: nessesary?
+    // fprintf(html_fp, "buff = ");
+    // for (size_t i = 0; i <= ls->getcap(); i++)
+    // {
+    //     fprintf(html_fp, "%4" LIST_ELM_T_FORMAT " ", ls->at(i));
+    // }
+    // fprintf(html_fp, "\n");
+    // fprintf(html_fp, "next = ");
+    // for (size_t i = 0; i <= ls->getcap(); i++)
+    // {
+    //     fprintf(html_fp, "%4lu ", ls->getnext(i));
+    // }
+    // fprintf(html_fp, "\n");
+    // fprintf(html_fp, "prev = ");
+    // for (size_t i = 0; i <= ls->getcap(); i++)
+    // {
+    //     fprintf(html_fp, "%4ld ", ls->getprev(i));
+    // }
+    fprintf(html_fp, "</pre>\n");
 
     char png_name[MAX_NAME_LEN] = {};
     sprintf(png_name, "%s%lu%s", "imgs/pngs/img", dump_num, ".png");
 
-    fprintf(html_fp, "<img src = %s style = \"width: 100%%;\">\n", png_name);
-    fprintf(html_fp, "<hr style = \"width: 100%%; height: 6px; color: black; background-color: black;\">\n");
+    fprintf(html_fp, "<div style = \"overflow-x:scroll; width: 100%%; height: 45%%\"><img src = %s style = \"height: 100%%;\"></div>\n", png_name);
+    fprintf(html_fp, "<hr style = \"border: 0px; width: 100%%; height: 6px; color: black; background-color: black;\">\n");
     return 0;
 }
 

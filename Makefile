@@ -49,3 +49,4 @@ run:
 
 clean:
 	@rm -rf -d $(BUILD_DIR)
+	@rm -rf -d dumps

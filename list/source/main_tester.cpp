@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "list.h"
 
-const int test_size = 10;
+const int test_size = 20;
 
 int main()
 {
@@ -15,7 +15,7 @@ int main()
     for (size_t i = 1; i <= test_size; i++)
     {
     dmp.new_dump(&ls);
-        if (i % 2) // COOL: copyright eratosthenes
+        if (i % 2)
         ls.erase(i);
     }
     dmp.new_dump(&ls);

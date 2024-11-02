@@ -12,9 +12,9 @@ private:
     size_t* prev = nullptr;
     size_t* next = nullptr;
     size_t ifree = 1;
-    size_t size = 0;
-    size_t cap = 0;
-    bool inited = false;
+    size_t size  = 0;
+    size_t cap   = 0;
+    bool inited  = false;
 
     mylist(const mylist&) = delete;             // FUCK: make the copy ctor
     mylist& operator=(const mylist&) = delete;  // FUCK: make the assignment
@@ -38,6 +38,7 @@ public:
 
 #define DO_LIST_DUMPS // FUCK: remove
 #ifdef DO_LIST_DUMPS
+
 #define MAX_NAME_LEN 100
 class mylist_dumper {
 private:
