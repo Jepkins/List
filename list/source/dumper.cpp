@@ -108,17 +108,17 @@ int mylist_dumper::new_dot(mylist* ls)
 
     fprintf(dot_fp, "digraph\n{\nrankdir = LR; bgcolor = \"#aaaaccff\"; ranksep = 0.6;\n");
 
-    size_t cap = ls->getcap();
+    size_t cap = ls->cap();
     for(size_t i = 0; i <= cap; i++)
     {
         size_t color = 0x11441133;
-        if (ls->getprev(i) == -1lu)
+        if (ls->prev(i) == -1lu)
             color = 0x44111133;
         if (i == 0)
             color = 0xffff6633;
         fprintf(dot_fp, "node%lu [shape = record, color = \"#%.8lX\", style=filled; label =\""
                         "{<ind>ind\\n%lu | {<next> next\\n%lu | <val> value\\n%" LIST_ELM_T_FORMAT " | <prev> prev\\n%ld }}\"];\n",
-                        i, color, i, ls->getnext(i), ls->at(i), ls->getprev(i));
+                        i, color, i, ls->next(i), ls->at(i), ls->prev(i));
     }
     fprintf(dot_fp, "edge [constraint = true; style = \"invis\";]\n");
     for(size_t i = 0; i < cap; i++)
@@ -128,13 +128,13 @@ int mylist_dumper::new_dot(mylist* ls)
     fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#55aa77ff\";]\n");
     for(size_t i = 0; i <= cap; i++)
     {
-        size_t next = ls->getnext(i);
+        size_t next = ls->next(i);
         fprintf(dot_fp, "node%lu:<next>:n -> node%lu:<ind>:n;\n", i, next);
     }
     fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#aa5577ff\";]\n");
     for(size_t i = 0; i <= cap; i++)
     {
-        size_t prev = ls->getprev(i);
+        size_t prev = ls->prev(i);
         if (prev == -1lu)
             continue;
         else
@@ -153,26 +153,25 @@ int mylist_dumper::new_htm(mylist* ls)
 {
     fprintf(html_fp, "<pre style = \"margin-left: 10px;\">\n");
     fprintf(html_fp, "LIST_DUMP (num = %lu)\n", dump_num);
-    fprintf(html_fp, "cap = %lu\n", ls->getcap());
-    fprintf(html_fp, "size = %lu\n", ls->getsize());
-    fprintf(html_fp, "free = %lu\n", ls->getfree());
+    fprintf(html_fp, "cap = %lu\n", ls->cap());
+    fprintf(html_fp, "size = %lu\n", ls->size());
     // LEGACY: nessesary?
     // fprintf(html_fp, "buff = ");
-    // for (size_t i = 0; i <= ls->getcap(); i++)
+    // for (size_t i = 0; i <= ls->cap(); i++)
     // {
     //     fprintf(html_fp, "%4" LIST_ELM_T_FORMAT " ", ls->at(i));
     // }
     // fprintf(html_fp, "\n");
     // fprintf(html_fp, "next = ");
-    // for (size_t i = 0; i <= ls->getcap(); i++)
+    // for (size_t i = 0; i <= ls->cap(); i++)
     // {
-    //     fprintf(html_fp, "%4lu ", ls->getnext(i));
+    //     fprintf(html_fp, "%4lu ", ls->next(i));
     // }
     // fprintf(html_fp, "\n");
     // fprintf(html_fp, "prev = ");
-    // for (size_t i = 0; i <= ls->getcap(); i++)
+    // for (size_t i = 0; i <= ls->cap(); i++)
     // {
-    //     fprintf(html_fp, "%4ld ", ls->getprev(i));
+    //     fprintf(html_fp, "%4ld ", ls->prev(i));
     // }
     fprintf(html_fp, "</pre>\n");
 

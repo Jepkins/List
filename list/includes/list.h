@@ -7,33 +7,31 @@
 typedef int list_elm_t;
 
 class mylist {
-private:
-    list_elm_t* buff = nullptr;
-    size_t* prev = nullptr;
-    size_t* next = nullptr;
-    size_t ifree = 1;
-    size_t size  = 0;
-    size_t cap   = 0;
-    bool inited  = false;
-
-    mylist(const mylist&) = delete;             // FUCK: make the copy ctor
-    mylist& operator=(const mylist&) = delete;  // FUCK: make the assignment
-    // FUCK: make moves
-
-    size_t request_free();
-    int expand();
 public:
-    mylist();
-    ~mylist();
-    size_t getsize();
-    size_t getcap();
-    size_t getnext(size_t ind);
-    size_t getprev(size_t ind);
-    size_t getfree();
+    // WORK: push_back pop_back ...
+    int ctor();
+    void dtor();
+    size_t size()                        const;
+    size_t cap()                         const;
+    size_t next(size_t ind)              const;
+    size_t prev(size_t ind)              const;
+    size_t find_by_logic(size_t log_ind) const;
+    list_elm_t at(size_t ind)            const;
+    int linearize();
+    int shrink_to_fit();
     int insert_after(list_elm_t elm, size_t ind);
     int insert_before(list_elm_t elm, size_t ind);
     int erase(size_t ind);
-    list_elm_t at(size_t ind);
+private:
+    size_t request_free();
+    int resize_w_linearization(size_t new_cap);
+    list_elm_t* m_buff{nullptr};
+    size_t* m_prev{nullptr};
+    size_t* m_next{nullptr};
+    size_t m_free {1};
+    size_t m_size {0};
+    size_t m_cap  {0};
+    bool inited   {false};
 };
 
 #define DO_LIST_DUMPS // FUCK: remove
@@ -41,20 +39,19 @@ public:
 
 #define MAX_NAME_LEN 100
 class mylist_dumper {
-private:
-    char root_dir[MAX_NAME_LEN] = {};
-    char dot_dir[MAX_NAME_LEN] = {};
-    char png_dir[MAX_NAME_LEN] = {};
-    FILE* html_fp = nullptr;
-    size_t dump_num = 0;
-    bool started = false;
-
-    int new_htm(mylist* ls);
-    int new_dot(mylist* ls);
 public:
     int start (const char* dump_dir);
     int new_dump (mylist* ls);
     void end();
+private:
+    int new_htm(mylist* ls);
+    int new_dot(mylist* ls);
+    char root_dir[MAX_NAME_LEN]{};
+    char dot_dir [MAX_NAME_LEN]{};
+    char png_dir [MAX_NAME_LEN]{};
+    FILE* html_fp   {nullptr};
+    size_t dump_num {0};
+    bool started    {false};
 };
 #endif // DO_LIST_DUMPS
 

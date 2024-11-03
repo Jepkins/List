@@ -8,171 +8,243 @@ static const size_t list_starting_cap = 16;
 static const size_t expansion_multiplier = 2;
 static const size_t list_max_cap = 1e6;
 
-mylist::mylist()
+int mylist::ctor()
 {
-    cap = list_starting_cap;
-    buff = (list_elm_t*) calloc(cap + 1, sizeof(*buff));
-    next = (size_t*) calloc(cap + 1, sizeof(*next));
-    prev = (size_t*) calloc(cap + 1, sizeof(*prev));
-    if (!(buff && prev && next))
+    m_cap = list_starting_cap;
+    m_buff = (list_elm_t*) calloc(m_cap + 1, sizeof(*m_buff));
+    m_next = (size_t*) calloc(m_cap + 1, sizeof(*m_next));
+    m_prev = (size_t*) calloc(m_cap + 1, sizeof(*m_prev));
+    if (!(m_buff && m_prev && m_next))
     {
-        free(buff); free(prev); free(next);
-        fprintf(stderr, "mylist: Allocation error!\n");
-        return;
+        free(m_buff); free(m_prev); free(m_next);
+        fprintf(stderr, "%s: Allocation error!\n", __func__);
+        return 1;
     }
-    next[0] = 0;
-    prev[0] = 0;
-    for (size_t i = 1; i <= cap; i++)
+    m_next[0] = 0;
+    m_prev[0] = 0;
+    for (size_t i = 1; i <= m_cap; i++)
     {
-        prev[i] = -1lu; // FUCK: unnessesary
-        next[i] = i + 1;
+        m_prev[i] = -1lu;
+        m_next[i] = i + 1;
     }
-    next[cap] = 0;
+    m_next[m_cap] = 0;
 
     inited = true;
+    return 0;
 }
-mylist::~mylist()
+void mylist::dtor()
 {
-    free(buff);
-    free(next);
-    free(prev);
-    buff = nullptr;
-    prev = nullptr;
-    next = nullptr;
-    ifree = 1;
-    size = 0;
-    cap = 0;
+    free(m_buff);
+    free(m_next);
+    free(m_prev);
+    m_buff = nullptr;
+    m_prev = nullptr;
+    m_next = nullptr;
+    m_free = 1;
+    m_size = 0;
+    m_cap = 0;
     inited = false;
 }
 
-size_t mylist::getsize()
+size_t mylist::size() const
 {
-    return size;
+    return m_size;
 }
-size_t mylist::getcap()
+size_t mylist::cap() const
 {
-    return cap;
+    return m_cap;
 }
-size_t mylist::getfree()
+size_t mylist::next(size_t idx) const
 {
-    return ifree;
+    if (idx > m_cap)
+    {
+        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        return -1lu;
+    }
+    return m_next[idx];
 }
-size_t mylist::getnext(size_t ind)
+size_t mylist::prev(size_t idx) const
 {
-    return next[ind];
+    if (idx > m_cap)
+    {
+        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        return -1lu;
+    }
+    return m_prev[idx];
 }
-size_t mylist::getprev(size_t ind)
+
+size_t mylist::find_by_logic(size_t log_idx) const
 {
-    return prev[ind];
+    if (log_idx > m_size)
+    {
+        fprintf(stderr, "%s: log_idx is greater than list size!\n", __func__);
+        return -1lu;
+    }
+    size_t phys_idx = 0;
+    for (size_t i = 0; i < log_idx; i++)
+    {
+        phys_idx = m_next[phys_idx];
+    }
+    return phys_idx;
+}
+
+int mylist::linearize()
+{
+    return resize_w_linearization(m_cap);
+}
+int mylist::shrink_to_fit()
+{
+    return resize_w_linearization(m_size);
+}
+int mylist::resize_w_linearization(size_t new_cap)
+{
+    if (new_cap > list_max_cap)
+    {
+        fprintf(stderr, "%s: Too big capacity to reallocate!\n", __func__);
+        return -1;
+    }
+    list_elm_t* new_buff = (list_elm_t*) calloc((new_cap+1), sizeof(*m_buff));
+    if (!new_buff)
+    {
+        fprintf(stderr, "%s: Reallocation error!\n", __func__);
+        return 1;
+    }
+
+    size_t* new_prev = (size_t*) calloc((new_cap+1), sizeof(*m_prev));
+    if (!new_prev)
+    {
+        free(new_buff);
+        fprintf(stderr, "%s: Reallocation error!\n", __func__);
+        return 1;
+    }
+
+    size_t* new_next = (size_t*) calloc((new_cap+1), sizeof(*m_next));
+    if (!new_next)
+    {
+        free(new_buff); free(new_prev);
+        fprintf(stderr, "%s: Reallocation error!\n", __func__);
+        return 1;
+    }
+
+    bool full = (new_cap == m_size);
+    if (new_cap < m_size)
+    {
+        fprintf(stderr, "%s: Warning: some elements were cut off during reallocation!\n", __func__);
+        m_size = new_cap;
+        full = true;
+    }
+
+    for (size_t log_idx = 0, phys_idx = 0; log_idx <= m_size; log_idx++)
+    {
+        new_buff[log_idx] = m_buff[phys_idx];
+        new_prev[log_idx] = log_idx-1;
+        new_next[log_idx] = log_idx+1;
+        phys_idx = m_next[phys_idx];
+    }
+    new_prev[0] = m_size;
+    new_next[m_size] = 0;
+    free(m_buff);
+    free(m_next);
+    free(m_prev);
+    m_buff = new_buff;
+    m_next = new_next;
+    m_prev = new_prev;
+
+    m_free = full? 0 : m_size+1;
+    for (size_t i = m_size+1; i <= new_cap; i++)
+    {
+        m_next[i] = i+1;
+        m_prev[i] = -1lu;
+    }
+    m_next[new_cap] = 0;
+
+    m_cap = new_cap;
+    return 0;
 }
 
 size_t mylist::request_free()
 {
-    if (ifree == 0)
+    if (m_free == 0)
     {
-        expand();
+        if (resize_w_linearization(m_cap * expansion_multiplier) != 0)
+            return 0;
     }
-    size_t ret = ifree;
-    ifree = next[ifree];
+    size_t ret = m_free;
+    m_free = m_next[m_free];
     return ret;
 }
-int mylist::expand()
+
+int mylist::insert_after(list_elm_t elm, size_t idx)
 {
-    size_t new_cap = cap * expansion_multiplier;
-
-    if (new_cap > list_max_cap)
+    if (idx > m_cap || m_prev[idx] == -1lu)
     {
-        fprintf(stderr, "mylist::expand(): Too big capacity to reallocate\n");
-        return 2;
-    }
-    list_elm_t* new_buff = (list_elm_t*) realloc(buff, (new_cap+1) * sizeof(*buff));
-    if (!new_buff)
-    {
-        fprintf(stderr, "mylist::expand(): Reallocation error!\n");
-        return 1;
-    }
-    else
-        buff = new_buff;
-
-    size_t* new_prev = (size_t*) realloc(prev, (new_cap+1) * sizeof(*prev));
-    if (!new_prev)
-    {
-        fprintf(stderr, "mylist::expand(): Reallocation error!\n");
-        return 1;
-    }
-    else
-        prev = new_prev;
-
-    size_t* new_next = (size_t*) realloc(next, (new_cap+1) * sizeof(*next));
-    if (!new_next)
-    {
-        fprintf(stderr, "mylist::expand(): Reallocation error!\n");
-        return 1;
-    }
-    else
-        next = new_next;
-
-    ifree = cap+1;
-    for (size_t i = cap+1; i <= new_cap; i++)
-    {
-        next[i] = i+1;
-        prev[i] = -1lu; // FUCK: unnessesary
-    }
-    next[new_cap] = 0;
-
-    cap = new_cap;
-    return 0;
-}
-
-int mylist::insert_after(list_elm_t elm, size_t ind)
-{
-    size_t free_ind = request_free();
-
-    size_t old_next = next[ind];
-    buff[free_ind] = elm;
-    next[ind] = free_ind;
-    prev[free_ind] = ind;
-    next[free_ind] = old_next;
-    prev[old_next] = free_ind;
-    size++;
-    return 0;
-}
-int mylist::insert_before(list_elm_t elm, size_t ind)
-{
-    size_t free_ind = request_free();
-
-    size_t old_prev = prev[ind];
-    buff[free_ind] = elm;
-    prev[ind] = free_ind;
-    next[free_ind] = ind;
-    prev[free_ind] = old_prev;
-    next[old_prev] = free_ind;
-    size++;
-    return 0;
-}
-int mylist::erase(size_t ind)
-{
-    if (ind == 0)
-    {
-        fprintf(stderr, "mylist::erase(): ind == 0!!!\n");
+        fprintf(stderr, "%s: invalid idx!\n", __func__);
         return -1;
     }
-    size_t old_next = next[ind];
-    size_t old_prev = prev[ind];
-    prev[old_next] = old_prev;
-    next[old_prev] = old_next;
+    size_t free_idx = request_free();
+    if (free_idx == 0)
+        return 1;
+    size_t old_next = m_next[idx];
+    m_buff[free_idx] = elm;
+    m_next[idx] = free_idx;
+    m_prev[free_idx] = idx;
+    m_next[free_idx] = old_next;
+    m_prev[old_next] = free_idx;
+    m_size++;
+    return 0;
+}
+int mylist::insert_before(list_elm_t elm, size_t idx)
+{
+    if (idx > m_cap || m_prev[idx] == -1lu)
+    {
+        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        return -1;
+    }
+    size_t free_idx = request_free();
+    if (free_idx == 0)
+        return 1;
 
-    prev[ind] = -1lu; // FUCK: unnessesary
+    size_t old_prev = m_prev[idx];
+    m_buff[free_idx] = elm;
+    m_prev[idx] = free_idx;
+    m_next[free_idx] = idx;
+    m_prev[free_idx] = old_prev;
+    m_next[old_prev] = free_idx;
+    m_size++;
+    return 0;
+}
+int mylist::erase(size_t idx)
+{
+    if (idx > m_cap || m_prev[idx] == -1lu)
+    {
+        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        return -1;
+    }
+    if (idx == 0)
+    {
+        fprintf(stderr, "%s: idx == 0!!!\n", __func__);
+        return -1;
+    }
+    size_t old_next = m_next[idx];
+    size_t old_prev = m_prev[idx];
+    m_prev[old_next] = old_prev;
+    m_next[old_prev] = old_next;
 
-    next[ind] = ifree;
-    ifree = ind;
-    size--;
+    m_prev[idx] = -1lu;
+
+    m_next[idx] = m_free;
+    m_free = idx;
+    m_size--;
     return 0;
 }
 
-list_elm_t mylist::at(size_t ind)
+list_elm_t mylist::at(size_t idx) const
 {
-// FUCK: errors
-    return buff[ind];
+    if (idx > m_cap) // MORON: || m_prev[idx] == -1lu (fuck the dumper)
+    {
+        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        return -1;
+    }
+    return m_buff[idx];
 }
 
