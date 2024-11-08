@@ -22,6 +22,8 @@ enum list_errors_t {
     LIST_SIZE_UNMATCH = 2
 };
 
+typedef class mylist_dumper mylist_dumper;
+
 class mylist {
 public:
     // WORK: push_back pop_back ...
@@ -49,6 +51,7 @@ private:
     size_t m_size {0};
     size_t m_cap  {0};
     bool inited   {false};
+    friend mylist_dumper;
 };
 
 #define DO_LIST_DUMPS // FUCK: remove

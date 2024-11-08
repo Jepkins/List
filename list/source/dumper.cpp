@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <cstring>
 #include "list.h"
+#include "colors.h"
 #ifdef DO_LIST_DUMPS // FUCK: move up
 
 #define LIST_ELM_T_FORMAT "d"
@@ -40,7 +41,7 @@ int mylist_dumper::start (const char* dump_dir)
         return 1;
     }
     fprintf(html_fp,
-            "<body style = \"background-color: #11115555; margin: 0px;\">\n"
+            "<body style = \"background-color: #ffffffff; margin: 0px;\">\n"
             "<div style = \"margin: 0px; "
             "font-weight: bold; "
             "color: #000000; "
@@ -97,17 +98,17 @@ int mylist_dumper::new_dot(mylist* ls)
     char png_name[MAX_NAME_LEN+20] = {};
     sprintf(png_name, "%s%4s%lu%4s", png_dir, "/img", dump_num, ".png");
 
-    fprintf(dot_fp, "digraph\n{\nrankdir = LR; bgcolor = \"#aaaaccff\"; ranksep = 0.6;\n");
+    fprintf(dot_fp, "digraph\n{\nrankdir = LR; bgcolor = \"#ffffffff\"; ranksep = 0.6;\n");
 
     size_t cap = ls->cap();
     for(size_t i = 0; i <= cap; i++)
     {
-        size_t color = 0x11441133;
+        size_t color = CL_LIGHT_GREEN;
         if (ls->prev(i) == -1lu)
-            color = 0x44111133;
+            color = CL_LIGHT_RED;
         if (i == 0)
-            color = 0xffff6633;
-        fprintf(dot_fp, "node%lu [shape = record, color = \"#%.8lX\", style=filled; label =\""
+            color = CL_LIGHT_YELLOW;
+        fprintf(dot_fp, "node%lu [shape = Mrecord, fillcolor = \"#%.8lX\", style=filled; label =\""
                         "{<ind>ind\\n%lu | {<next> next\\n%lu | <val> value\\n%" LIST_ELM_T_FORMAT " | <prev> prev\\n%ld }}\"];\n",
                         i, color, i, ls->next(i), ls->at(i), ls->prev(i));
     }
@@ -116,22 +117,26 @@ int mylist_dumper::new_dot(mylist* ls)
     {
         fprintf(dot_fp, "node%lu -> node%lu;\n", i, i+1);
     }
-    fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#55aa77ff\";]\n");
+    fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#%.8X\";]\n", CL_SATURATED_GREEN);
     for(size_t i = 0; i <= cap; i++)
     {
         size_t next = ls->next(i);
-        fprintf(dot_fp, "node%lu:<next>:n -> node%lu:<ind>:n;\n", i, next);
+        fprintf(dot_fp, "node%lu -> node%lu;\n", i, next);
     }
-    fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#aa5577ff\";]\n");
+    fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#%.8X\";]\n", CL_SATURATED_RED);
     for(size_t i = 0; i <= cap; i++)
     {
         size_t prev = ls->prev(i);
         if (prev == -1lu)
             continue;
         else
-            fprintf(dot_fp, "node%lu:<prev>:s -> node%lu:<ind>:s;\n", i, prev);
+            fprintf(dot_fp, "node%lu -> node%lu;\n", i, prev);
     }
-
+    fprintf(dot_fp, "free [shape = circle, color = \"#%.8X\", label = \"free\\n%lu\"];\n", CL_LIGHT_BROWN, ls->m_free);
+    if (ls->m_free != 0)
+    {
+        fprintf(dot_fp, "free -> node%lu [constraint = false; style = \"\"; color = \"#%.8X\";];\n", ls->m_free, CL_LIGHT_BROWN);
+    }
     fprintf(dot_fp, "}\n");
     fclose(dot_fp);
     char syscall[2 * MAX_NAME_LEN + 60] = {};
@@ -152,7 +157,7 @@ int mylist_dumper::new_htm(mylist* ls, const char reason[], code_position_t from
     char png_name[MAX_NAME_LEN] = {};
     sprintf(png_name, "%s%lu%s", "imgs/pngs/img", dump_num, ".png");
 
-    fprintf(html_fp, "<div style = \"overflow-x:scroll; width: 100%%; height: 45%%\"><img src = %s style = \"height: 100%%;\"></div>\n", png_name);
+    fprintf(html_fp, "<div style = \"overflow-x:scroll; width: 100%%; height: 45%%\">\n<img src = %s style = \"height: 100%%;\">\n</div>\n", png_name);
     fprintf(html_fp, "<hr style = \"border: 0px; width: 100%%; height: 6px; color: black; background-color: black;\">\n");
     return 0;
 }

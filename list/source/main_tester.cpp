@@ -3,7 +3,7 @@
 
 int main()
 {
-    const int test_size = 20;
+    const int test_size = 8;
     mylist ls;
     ls.ctor();
     mylist_dumper dmp;
@@ -18,10 +18,10 @@ int main()
     dmp.new_dump(&ls, "initial", POS__);
     for (size_t i = 1; i <= test_size; i++)
     {
-        if (i % 2)
+        if (i % 3 == 0)
             ls.erase(i);
     }
-    dmp.new_dump(&ls, "checking (each 2nd deleted)", POS__);
+    dmp.new_dump(&ls, "checking (each 3rd deleted)", POS__);
 
     ls.shrink_to_fit();
     dmp.new_dump(&ls, "checking (shrink_to_fit)", POS__);

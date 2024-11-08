@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "list.h"
 
-static const size_t list_starting_cap = 16;
+static const size_t list_starting_cap = 8;
 
 static const size_t expansion_multiplier = 2;
 static const size_t list_max_cap = 1e6;
@@ -203,18 +203,24 @@ int mylist::insert_after(list_elm_t elm, size_t idx)
         ERRMSG_("invalid idx!");
         return -1;
     }
+
     size_t free_idx = request_free();
+
     if (free_idx == 0)
         return 1;
+
     size_t old_next = m_next[idx];
     m_buff[free_idx] = elm;
     m_next[idx] = free_idx;
+
     m_prev[free_idx] = idx;
     m_next[free_idx] = old_next;
     m_prev[old_next] = free_idx;
+
     m_size++;
     return 0;
 }
+
 int mylist::insert_before(list_elm_t elm, size_t idx)
 {
     if (idx > m_cap || m_prev[idx] == -1lu)
@@ -222,13 +228,16 @@ int mylist::insert_before(list_elm_t elm, size_t idx)
         ERRMSG_("Invalid idx!");
         return -1;
     }
+
     size_t free_idx = request_free();
+
     if (free_idx == 0)
         return 1;
 
     size_t old_prev = m_prev[idx];
     m_buff[free_idx] = elm;
     m_prev[idx] = free_idx;
+
     m_next[free_idx] = idx;
     m_prev[free_idx] = old_prev;
     m_next[old_prev] = free_idx;
@@ -242,19 +251,23 @@ int mylist::erase(size_t idx)
         ERRMSG_("Invalid idx!");
         return -1;
     }
+
     if (idx == 0)
     {
         ERRMSG_("idx == 0!!!");
         return -1;
     }
+
     size_t old_next = m_next[idx];
     size_t old_prev = m_prev[idx];
+
     m_prev[old_next] = old_prev;
     m_next[old_prev] = old_next;
 
     m_prev[idx] = -1lu;
 
     m_next[idx] = m_free;
+    
     m_free = idx;
     m_size--;
     return 0;
