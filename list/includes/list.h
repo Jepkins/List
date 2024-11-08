@@ -4,13 +4,30 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifndef CODE_POSITION
+#define CODE_POSITION
+typedef struct {
+    const char* file;
+    int line;
+    const char* func;
+} code_position_t;
+#define POS__ {__FILE__, __LINE__, __func__}
+#endif // CODE_POSITION
+
 typedef int list_elm_t;
+
+enum list_errors_t {
+    LIST_OK = 0,
+    LIST_BAD_CONNECT  = 1,
+    LIST_SIZE_UNMATCH = 2
+};
 
 class mylist {
 public:
     // WORK: push_back pop_back ...
-    int ctor();
+    int  ctor();
     void dtor();
+    int verify();
     size_t size()                        const;
     size_t cap()                         const;
     size_t next(size_t ind)              const;
@@ -41,10 +58,10 @@ private:
 class mylist_dumper {
 public:
     int start (const char* dump_dir);
-    int new_dump (mylist* ls);
+    int new_dump (mylist* ls, const char reason[] = "unknown", code_position_t from = {});
     void end();
 private:
-    int new_htm(mylist* ls);
+    int new_htm(mylist* ls, const char reason[], code_position_t from);
     int new_dot(mylist* ls);
     char root_dir[MAX_NAME_LEN]{};
     char dot_dir [MAX_NAME_LEN]{};

@@ -8,6 +8,8 @@ static const size_t list_starting_cap = 16;
 static const size_t expansion_multiplier = 2;
 static const size_t list_max_cap = 1e6;
 
+#define ERRMSG_(msg) fprintf(stderr, "%s:" msg "\n", __func__)
+
 int mylist::ctor()
 {
     m_cap = list_starting_cap;
@@ -17,7 +19,7 @@ int mylist::ctor()
     if (!(m_buff && m_prev && m_next))
     {
         free(m_buff); free(m_prev); free(m_next);
-        fprintf(stderr, "%s: Allocation error!\n", __func__);
+        ERRMSG_("Allocation error!");
         return 1;
     }
     m_next[0] = 0;
@@ -46,6 +48,26 @@ void mylist::dtor()
     inited = false;
 }
 
+int mylist::verify()
+{
+    size_t phys_idx = 0;
+    size_t log_idx  = 0;
+    for (; log_idx <= m_size; log_idx++)
+    {
+        if (m_prev[m_next[phys_idx]] != phys_idx ||
+            m_next[m_prev[phys_idx]] != phys_idx)
+        {
+            return LIST_BAD_CONNECT;
+        }
+        if (m_next[phys_idx] == 0)
+            break;
+        phys_idx = m_next[phys_idx];
+    }
+    if (log_idx != m_size)
+        return LIST_SIZE_UNMATCH;
+    return LIST_OK;
+}
+
 size_t mylist::size() const
 {
     return m_size;
@@ -58,7 +80,7 @@ size_t mylist::next(size_t idx) const
 {
     if (idx > m_cap)
     {
-        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        ERRMSG_("Invalid idx!");
         return -1lu;
     }
     return m_next[idx];
@@ -67,7 +89,7 @@ size_t mylist::prev(size_t idx) const
 {
     if (idx > m_cap)
     {
-        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        ERRMSG_("Invalid idx!");
         return -1lu;
     }
     return m_prev[idx];
@@ -77,7 +99,7 @@ size_t mylist::find_by_logic(size_t log_idx) const
 {
     if (log_idx > m_size)
     {
-        fprintf(stderr, "%s: log_idx is greater than list size!\n", __func__);
+        ERRMSG_("log_idx is greater than list size!");
         return -1lu;
     }
     size_t phys_idx = 0;
@@ -100,13 +122,13 @@ int mylist::resize_w_linearization(size_t new_cap)
 {
     if (new_cap > list_max_cap)
     {
-        fprintf(stderr, "%s: Too big capacity to reallocate!\n", __func__);
+        ERRMSG_("Too big capacity to reallocate!");
         return -1;
     }
     list_elm_t* new_buff = (list_elm_t*) calloc((new_cap+1), sizeof(*m_buff));
     if (!new_buff)
     {
-        fprintf(stderr, "%s: Reallocation error!\n", __func__);
+        ERRMSG_("Reallocation error!");
         return 1;
     }
 
@@ -114,7 +136,7 @@ int mylist::resize_w_linearization(size_t new_cap)
     if (!new_prev)
     {
         free(new_buff);
-        fprintf(stderr, "%s: Reallocation error!\n", __func__);
+        ERRMSG_("Reallocation error!");
         return 1;
     }
 
@@ -122,14 +144,14 @@ int mylist::resize_w_linearization(size_t new_cap)
     if (!new_next)
     {
         free(new_buff); free(new_prev);
-        fprintf(stderr, "%s: Reallocation error!\n", __func__);
+        ERRMSG_("Reallocation error!");
         return 1;
     }
 
     bool full = (new_cap == m_size);
     if (new_cap < m_size)
     {
-        fprintf(stderr, "%s: Warning: some elements were cut off during reallocation!\n", __func__);
+        ERRMSG_("Warning: some elements were cut off during reallocation!");
         m_size = new_cap;
         full = true;
     }
@@ -178,7 +200,7 @@ int mylist::insert_after(list_elm_t elm, size_t idx)
 {
     if (idx > m_cap || m_prev[idx] == -1lu)
     {
-        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        ERRMSG_("invalid idx!");
         return -1;
     }
     size_t free_idx = request_free();
@@ -197,7 +219,7 @@ int mylist::insert_before(list_elm_t elm, size_t idx)
 {
     if (idx > m_cap || m_prev[idx] == -1lu)
     {
-        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        ERRMSG_("Invalid idx!");
         return -1;
     }
     size_t free_idx = request_free();
@@ -217,12 +239,12 @@ int mylist::erase(size_t idx)
 {
     if (idx > m_cap || m_prev[idx] == -1lu)
     {
-        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        ERRMSG_("Invalid idx!");
         return -1;
     }
     if (idx == 0)
     {
-        fprintf(stderr, "%s: idx == 0!!!\n", __func__);
+        ERRMSG_("idx == 0!!!");
         return -1;
     }
     size_t old_next = m_next[idx];
@@ -240,11 +262,12 @@ int mylist::erase(size_t idx)
 
 list_elm_t mylist::at(size_t idx) const
 {
-    if (idx > m_cap) // MORON: || m_prev[idx] == -1lu (fuck the dumper)
+    if (idx > m_cap)
     {
-        fprintf(stderr, "%s: invalid idx!\n", __func__);
+        ERRMSG_("Invalid idx!");
         return -1;
     }
     return m_buff[idx];
 }
 
+#undef ERRMSG_

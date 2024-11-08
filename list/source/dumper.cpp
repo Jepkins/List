@@ -7,18 +7,9 @@
 #define LIST_ELM_T_FORMAT "d"
 static char html_filename[] = "/dumps.html";
 
-static size_t safe_strlen(const char *str, size_t max_len)
-{
-    const char * end = (const char *)memchr(str, '\0', max_len);
-    if (end == NULL)
-        return max_len;
-    else
-        return (size_t)(end - str);
-}
-
 int mylist_dumper::start (const char* dump_dir)
 {
-    if (safe_strlen(dump_dir, MAX_NAME_LEN) == MAX_NAME_LEN)
+    if (strnlen(dump_dir, MAX_NAME_LEN) == MAX_NAME_LEN)
     {
         fprintf(stderr, "start_dumps(): Too long dump_dir name\n");
         return -1;
@@ -62,7 +53,7 @@ int mylist_dumper::start (const char* dump_dir)
     return 0;
 }
 
-int mylist_dumper::new_dump(mylist* ls)
+int mylist_dumper::new_dump(mylist* ls, const char reason[], code_position_t from)
 {
     if (ls == nullptr)
     {
@@ -76,7 +67,7 @@ int mylist_dumper::new_dump(mylist* ls)
     }
 
     new_dot(ls);
-    new_htm(ls);
+    new_htm(ls, reason, from);
 
     fflush(html_fp);
     dump_num++;
@@ -149,30 +140,13 @@ int mylist_dumper::new_dot(mylist* ls)
     return 0;
 }
 
-int mylist_dumper::new_htm(mylist* ls)
+int mylist_dumper::new_htm(mylist* ls, const char reason[], code_position_t from)
 {
     fprintf(html_fp, "<pre style = \"margin-left: 10px;\">\n");
-    fprintf(html_fp, "LIST_DUMP (num = %lu)\n", dump_num);
+    fprintf(html_fp, "LIST_DUMP (called from %s:%d in function %s, reason: %s, num = %lu)\n",
+                      from.file, from.line, from.func, reason, dump_num);
     fprintf(html_fp, "cap = %lu\n", ls->cap());
     fprintf(html_fp, "size = %lu\n", ls->size());
-    // LEGACY: nessesary?
-    // fprintf(html_fp, "buff = ");
-    // for (size_t i = 0; i <= ls->cap(); i++)
-    // {
-    //     fprintf(html_fp, "%4" LIST_ELM_T_FORMAT " ", ls->at(i));
-    // }
-    // fprintf(html_fp, "\n");
-    // fprintf(html_fp, "next = ");
-    // for (size_t i = 0; i <= ls->cap(); i++)
-    // {
-    //     fprintf(html_fp, "%4lu ", ls->next(i));
-    // }
-    // fprintf(html_fp, "\n");
-    // fprintf(html_fp, "prev = ");
-    // for (size_t i = 0; i <= ls->cap(); i++)
-    // {
-    //     fprintf(html_fp, "%4ld ", ls->prev(i));
-    // }
     fprintf(html_fp, "</pre>\n");
 
     char png_name[MAX_NAME_LEN] = {};
