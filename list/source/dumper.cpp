@@ -104,13 +104,13 @@ int mylist_dumper::new_dot(mylist* ls)
     for(size_t i = 0; i <= cap; i++)
     {
         size_t color = CL_LIGHT_GREEN;
-        if (ls->prev(i) == -1lu)
+        if (ls->m_prev[i] == -1lu)
             color = CL_LIGHT_RED;
         if (i == 0)
             color = CL_LIGHT_YELLOW;
         fprintf(dot_fp, "node%lu [shape = Mrecord, fillcolor = \"#%.8lX\", style=filled; label =\""
                         "{<ind>ind\\n%lu | {<next> next\\n%lu | <val> value\\n%" LIST_ELM_T_FORMAT " | <prev> prev\\n%ld }}\"];\n",
-                        i, color, i, ls->next(i), ls->at(i), ls->prev(i));
+                        i, color, i, ls->m_next[i], ls->m_buff[i], ls->m_prev[i]);
     }
     fprintf(dot_fp, "edge [constraint = true; style = \"invis\";]\n");
     for(size_t i = 0; i < cap; i++)
@@ -120,13 +120,13 @@ int mylist_dumper::new_dot(mylist* ls)
     fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#%.8X\";]\n", CL_SATURATED_GREEN);
     for(size_t i = 0; i <= cap; i++)
     {
-        size_t next = ls->next(i);
+        size_t next = ls->m_next[i];
         fprintf(dot_fp, "node%lu -> node%lu;\n", i, next);
     }
     fprintf(dot_fp, "edge [constraint = false; style = \"\"; color = \"#%.8X\";]\n", CL_SATURATED_RED);
     for(size_t i = 0; i <= cap; i++)
     {
-        size_t prev = ls->prev(i);
+        size_t prev = ls->m_prev[i];
         if (prev == -1lu)
             continue;
         else

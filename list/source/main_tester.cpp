@@ -13,7 +13,7 @@ int main()
     {
         if (i == 15)
             ls.erase(5);
-        ls.insert_before(val, 0);
+        ls.insert_back(val);
     }
     dmp.new_dump(&ls, "initial", POS__);
     for (size_t i = 1; i <= test_size; i++)
@@ -29,7 +29,7 @@ int main()
     int err_code = 0;
     if ((err_code = ls.verify()) != LIST_OK)
     {
-        dmp.new_dump(&ls, "verification err", POS__);
+        dmp.new_dump(&ls, "verification error", POS__);
         fprintf(stderr, "Verification error (code = %d), list dumped\n", err_code);
     }
     dmp.end();

@@ -48,7 +48,7 @@ void mylist::dtor()
     inited = false;
 }
 
-int mylist::verify()
+list_errors_t mylist::verify()
 {
     size_t phys_idx = 0;
     size_t log_idx  = 0;
@@ -244,6 +244,15 @@ int mylist::insert_before(list_elm_t elm, size_t idx)
     m_size++;
     return 0;
 }
+int mylist::insert_back  (list_elm_t elm)
+{
+    return insert_before(elm, 0);
+}
+int mylist::insert_front (list_elm_t elm)
+{
+    return insert_after(elm, 0);
+}
+
 int mylist::erase(size_t idx)
 {
     if (idx > m_cap || m_prev[idx] == -1lu)
@@ -267,15 +276,24 @@ int mylist::erase(size_t idx)
     m_prev[idx] = -1lu;
 
     m_next[idx] = m_free;
-    
+
     m_free = idx;
     m_size--;
     return 0;
 }
+int mylist::erase_back  ()
+{
+    return erase(m_prev[0]);
+}
+int mylist::erase_front ()
+{
+    return erase(m_next[0]);
+}
+
 
 list_elm_t mylist::at(size_t idx) const
 {
-    if (idx > m_cap)
+    if (idx > m_cap || m_prev[idx] == -1lu)
     {
         ERRMSG_("Invalid idx!");
         return -1;

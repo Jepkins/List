@@ -1,5 +1,6 @@
 #ifndef LIST_H
 #define LIST_H
+#define DO_LIST_DUMPS // FUCK: remove
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -22,28 +23,39 @@ enum list_errors_t {
     LIST_SIZE_UNMATCH = 2
 };
 
+#ifdef DO_LIST_DUMPS
 typedef class mylist_dumper mylist_dumper;
+#endif // DO_LIST_DUMPS
 
 class mylist {
 public:
-    // WORK: push_back pop_back ...
     int  ctor();
     void dtor();
-    int verify();
+    list_errors_t verify();
+
     size_t size()                        const;
     size_t cap()                         const;
     size_t next(size_t ind)              const;
     size_t prev(size_t ind)              const;
     size_t find_by_logic(size_t log_ind) const;
     list_elm_t at(size_t ind)            const;
+
     int linearize();
     int shrink_to_fit();
-    int insert_after(list_elm_t elm, size_t ind);
+
+    int insert_after (list_elm_t elm, size_t ind);
     int insert_before(list_elm_t elm, size_t ind);
+    int insert_back  (list_elm_t elm);
+    int insert_front (list_elm_t elm);
+
     int erase(size_t ind);
+    int erase_back ();
+    int erase_front();
+
 private:
     size_t request_free();
     int resize_w_linearization(size_t new_cap);
+    
     list_elm_t* m_buff{nullptr};
     size_t* m_prev{nullptr};
     size_t* m_next{nullptr};
@@ -51,10 +63,12 @@ private:
     size_t m_size {0};
     size_t m_cap  {0};
     bool inited   {false};
+
+#ifdef DO_LIST_DUMPS
     friend mylist_dumper;
+#endif // DO_LIST_DUMPS
 };
 
-#define DO_LIST_DUMPS // FUCK: remove
 #ifdef DO_LIST_DUMPS
 
 #define MAX_NAME_LEN 100
@@ -73,6 +87,7 @@ private:
     size_t dump_num {0};
     bool started    {false};
 };
+
 #endif // DO_LIST_DUMPS
 
 #endif // LIST_H
