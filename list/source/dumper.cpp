@@ -15,32 +15,32 @@ int mylist_dumper::start (const char* dump_dir)
         fprintf(stderr, "start_dumps(): Too long dump_dir name\n");
         return -1;
     }
-    strcpy(root_dir, dump_dir);
+    strcpy(m_root_dir, dump_dir);
 
-    strcpy(dot_dir, root_dir);
-    strcat(dot_dir, "/imgs/dots");
+    strcpy(m_dot_dir, m_root_dir);
+    strcat(m_dot_dir, "/imgs/dots");
 
-    strcpy(png_dir, root_dir);
-    strcat(png_dir, "/imgs/pngs");
+    strcpy(m_png_dir, m_root_dir);
+    strcat(m_png_dir, "/imgs/pngs");
 
     char system_call[MAX_NAME_LEN+20] = {};
-    sprintf(system_call, "%s%s", "mkdir -p ", root_dir);
+    sprintf(system_call, "%s%s", "mkdir -p ", m_root_dir);
     system(system_call);
-    sprintf(system_call, "%s%s", "mkdir -p ", png_dir);
+    sprintf(system_call, "%s%s", "mkdir -p ", m_png_dir);
     system(system_call);
-    sprintf(system_call, "%s%s", "mkdir -p ", dot_dir);
+    sprintf(system_call, "%s%s", "mkdir -p ", m_dot_dir);
     system(system_call);
 
     char html_filename_w_path[MAX_NAME_LEN + 20];
-    strcpy(html_filename_w_path, root_dir);
+    strcpy(html_filename_w_path, m_root_dir);
     strcat(html_filename_w_path, html_filename);
-    html_fp = fopen(html_filename_w_path, "w");
-    if (!html_fp)
+    m_html_fp = fopen(html_filename_w_path, "w");
+    if (!m_html_fp)
     {
         fprintf(stderr, "mylist_dumper::start(): Could not open html file\n");
         return 1;
     }
-    fprintf(html_fp,
+    fprintf(m_html_fp,
             "<body style = \"background-color: #ffffffff; margin: 0px;\">\n"
             "<div style = \"margin: 0px; "
             "font-weight: bold; "
@@ -50,7 +50,7 @@ int mylist_dumper::start (const char* dump_dir)
             "width: 100%%;\">\n"
             );
 
-    started = true;
+    m_started = true;
     return 0;
 }
 
@@ -61,34 +61,34 @@ int mylist_dumper::new_dump(mylist* ls, const char reason[], code_position_t fro
         fprintf(stderr, "mylist_dumper::new_dump(): ls == nullptr!\n");
         return -1;
     }
-    if (started == false)
+    if (m_started == false)
     {
-        fprintf(stderr, "mylist_dumper::new_dump(): duming not started (try calling mylist_dumper::start())\n");
+        fprintf(stderr, "mylist_dumper::new_dump(): duming not m_started (try calling mylist_dumper::start())\n");
         return -2;
     }
 
     new_dot(ls);
     new_htm(ls, reason, from);
 
-    fflush(html_fp);
-    dump_num++;
+    fflush(m_html_fp);
+    m_dump_num++;
     return 0;
 }
 
 void mylist_dumper::end()
 {
-    if (started)
+    if (m_started)
     {
-        fprintf(html_fp, "</div>\n</body>");
-        fclose(html_fp);
+        fprintf(m_html_fp, "</div>\n</body>");
+        fclose(m_html_fp);
     }
-    started = false;
+    m_started = false;
 }
 
 int mylist_dumper::new_dot(mylist* ls)
 {
     char dot_name[MAX_NAME_LEN+20] = {};
-    sprintf(dot_name, "%s%4s%lu%4s", dot_dir, "/img", dump_num, ".dot");
+    sprintf(dot_name, "%s%4s%lu%4s", m_dot_dir, "/img", m_dump_num, ".dot");
     FILE* dot_fp = fopen(dot_name, "w");
     if (!dot_fp)
     {
@@ -96,7 +96,7 @@ int mylist_dumper::new_dot(mylist* ls)
         return 1;
     }
     char png_name[MAX_NAME_LEN+20] = {};
-    sprintf(png_name, "%s%4s%lu%4s", png_dir, "/img", dump_num, ".png");
+    sprintf(png_name, "%s%4s%lu%4s", m_png_dir, "/img", m_dump_num, ".png");
 
     fprintf(dot_fp, "digraph\n{\nrankdir = LR; bgcolor = \"#ffffffff\"; ranksep = 0.6;\n");
 
@@ -147,18 +147,18 @@ int mylist_dumper::new_dot(mylist* ls)
 
 int mylist_dumper::new_htm(mylist* ls, const char reason[], code_position_t from)
 {
-    fprintf(html_fp, "<pre style = \"margin-left: 10px;\">\n");
-    fprintf(html_fp, "LIST_DUMP (called from %s:%d in function %s, reason: %s, num = %lu)\n",
-                      from.file, from.line, from.func, reason, dump_num);
-    fprintf(html_fp, "cap = %lu\n", ls->cap());
-    fprintf(html_fp, "size = %lu\n", ls->size());
-    fprintf(html_fp, "</pre>\n");
+    fprintf(m_html_fp, "<pre style = \"margin-left: 10px;\">\n");
+    fprintf(m_html_fp, "LIST_DUMP (called from %s:%d in function %s, reason: %s, num = %lu)\n",
+                      from.file, from.line, from.func, reason, m_dump_num);
+    fprintf(m_html_fp, "cap = %lu\n", ls->cap());
+    fprintf(m_html_fp, "size = %lu\n", ls->size());
+    fprintf(m_html_fp, "</pre>\n");
 
     char png_name[MAX_NAME_LEN] = {};
-    sprintf(png_name, "%s%lu%s", "imgs/pngs/img", dump_num, ".png");
+    sprintf(png_name, "%s%lu%s", "imgs/pngs/img", m_dump_num, ".png");
 
-    fprintf(html_fp, "<div style = \"overflow-x:scroll; width: 100%%; height: 45%%\">\n<img src = %s style = \"height: 100%%;\">\n</div>\n", png_name);
-    fprintf(html_fp, "<hr style = \"border: 0px; width: 100%%; height: 6px; color: black; background-color: black;\">\n");
+    fprintf(m_html_fp, "<div style = \"overflow-x:scroll; width: 100%%; height: 45%%\">\n<img src = %s style = \"height: 100%%;\">\n</div>\n", png_name);
+    fprintf(m_html_fp, "<hr style = \"border: 0px; width: 100%%; height: 6px; color: black; background-color: black;\">\n");
     return 0;
 }
 

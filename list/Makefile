@@ -4,8 +4,6 @@ CFLAGS = $(flags)
 BUILD_DIR = $(build)/$(CURRENT_DIR)
 COMMON_INCLUDES = $(addprefix -I../, $(common_incs))
 
-CFLAGS += #-D DO_LIST_DUMPS # MIND: dumps
-
 SRC_DIR = source
 INC_DIR = includes
 

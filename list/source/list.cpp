@@ -31,7 +31,7 @@ int mylist::ctor()
     }
     m_next[m_cap] = 0;
 
-    inited = true;
+    m_inited = true;
     return 0;
 }
 void mylist::dtor()
@@ -45,14 +45,14 @@ void mylist::dtor()
     m_free = 1;
     m_size = 0;
     m_cap = 0;
-    inited = false;
+    m_inited = false;
 }
 
 list_errors_t mylist::verify()
 {
     size_t phys_idx = 0;
     size_t log_idx  = 0;
-    for (; log_idx <= m_size; log_idx++)
+    for (; log_idx <= m_size; log_idx++) // not free route
     {
         if (m_prev[m_next[phys_idx]] != phys_idx ||
             m_next[m_prev[phys_idx]] != phys_idx)
@@ -65,6 +65,23 @@ list_errors_t mylist::verify()
     }
     if (log_idx != m_size)
         return LIST_SIZE_UNMATCH;
+
+    log_idx = 0;
+    phys_idx = m_free;
+    for (; log_idx <= m_cap - m_size; log_idx++) // free route
+    {
+        if (m_prev[m_next[phys_idx]] != phys_idx ||
+            m_next[m_prev[phys_idx]] != phys_idx)
+        {
+            return LIST_BAD_CONNECT;
+        }
+        if (m_next[phys_idx] == 0)
+            break;
+        phys_idx = m_next[phys_idx];
+    }
+    if (log_idx != m_cap - m_size)
+        return LIST_SIZE_UNMATCH;
+
     return LIST_OK;
 }
 

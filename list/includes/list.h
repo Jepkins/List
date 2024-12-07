@@ -52,17 +52,17 @@ public:
     int erase_back ();
     int erase_front();
 
-private:
+// private:
     size_t request_free();
     int resize_w_linearization(size_t new_cap);
-    
+
     list_elm_t* m_buff{nullptr};
     size_t* m_prev{nullptr};
     size_t* m_next{nullptr};
     size_t m_free {1};
     size_t m_size {0};
     size_t m_cap  {0};
-    bool inited   {false};
+    bool m_inited   {false};
 
 #ifdef DO_LIST_DUMPS
     friend mylist_dumper;
@@ -80,12 +80,12 @@ public:
 private:
     int new_htm(mylist* ls, const char reason[], code_position_t from);
     int new_dot(mylist* ls);
-    char root_dir[MAX_NAME_LEN]{};
-    char dot_dir [MAX_NAME_LEN]{};
-    char png_dir [MAX_NAME_LEN]{};
-    FILE* html_fp   {nullptr};
-    size_t dump_num {0};
-    bool started    {false};
+    char m_root_dir[MAX_NAME_LEN]{};
+    char m_dot_dir [MAX_NAME_LEN]{};
+    char m_png_dir [MAX_NAME_LEN]{};
+    FILE* m_html_fp   {nullptr};
+    size_t m_dump_num   {0};
+    bool m_started      {false};
 };
 
 #endif // DO_LIST_DUMPS

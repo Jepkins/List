@@ -14,4 +14,8 @@
 #define CL_SATURATED_GREEN 0x55aa77ff
 #define CL_SATURATED_BLUE  0x7755aaff
 
+#define CL_SATURATED_AQUA 0x04efa5ff
+#define CL_POMADA         0xc80e5aff
+#define CL_ALINA_MIX      0xca7567c6
+
 #endif // COLORS_H
